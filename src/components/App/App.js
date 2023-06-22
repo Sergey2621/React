@@ -4,22 +4,28 @@ import { Card } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Todo from "../To-Do/todo";
 import FormTodo from "../FormTodo/formtodo";
-import { SketchPicker } from 'react-color';
+import { SliderPicker } from 'react-color';
 
 const getLocalItems = () => {
   let list = localStorage.getItem("lists");
+  let storedColor = localStorage.getItem("selectedColor");
+  let storedColors = localStorage.getItem("colors");
 
-  return list && list !== "undefined" && list !== "null"
-    ? JSON.parse(list)
-    : [];
+  return {
+    todos: list && list !== "undefined" && list !== "null" ? JSON.parse(list) : [],
+    selectedColor: storedColor || "#ffffff",
+    colors: storedColors ? JSON.parse(storedColors) : []
+  };
 };
 
 function App() {
-  const [todos, setTodos] = useState(getLocalItems);
+  const { todos: initialTodos, selectedColor: initialSelectedColor, colors: initialColors } = getLocalItems();
+
+  const [todos, setTodos] = useState(initialTodos);
   const [newToDos, setNewToDos] = useState("");
-  const [colors, setColors] = useState([]);
+  const [colors, setColors] = useState(initialColors);
   const [selectedTodoIndexes, setSelectedTodoIndexes] = useState([]);
-  const [selectedColor, setSelectedColor] = useState("#ffffff");
+  const [selectedColor, setSelectedColor] = useState(initialSelectedColor);
 
   const ToDos = () => {
     if (newToDos) {
@@ -28,7 +34,7 @@ function App() {
         {
           text: newToDos,
           isDone: false,
-          color: selectedColor // Save selected color for new todo
+          color: selectedColor
         },
       ]);
       setColors([
@@ -75,10 +81,9 @@ function App() {
   
     setTodos(updatedTodos);
     setColors(updatedTodos.map((todo) => todo.color));
-    setSelectedColor(color.hex); // Update selected color state
+    setSelectedColor(color.hex);
   };
   
-
   const handleTodoClick = (index) => {
     if (selectedTodoIndexes.includes(index)) {
       setSelectedTodoIndexes(selectedTodoIndexes.filter((i) => i !== index));
@@ -87,21 +92,17 @@ function App() {
     }
   };
   
-
   useEffect(() => {
     localStorage.setItem("lists", JSON.stringify(todos));
   }, [todos]);
+  
+  useEffect(() => {
+    localStorage.setItem("selectedColor", selectedColor);
+  }, [selectedColor]);
 
-  // useEffect(() => {
-  //   const storedColor = localStorage.getItem("selectedColor");
-  //   if (storedColor) {
-  //     setSelectedColor(storedColor);
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   localStorage.setItem("selectedColor", selectedColor);
-  // }, [selectedColor]);
+  useEffect(() => {
+    localStorage.setItem("colors", JSON.stringify(colors));
+  }, [colors]);
 
   return (
     <div className="app">
@@ -129,7 +130,7 @@ function App() {
         </div>
         <div className="color-picker">
           <h2>Виберіть колір:</h2>
-          <SketchPicker color={selectedColor} onChange={handleColorChange} />
+          <SliderPicker color={selectedColor} onChange={handleColorChange} />
         </div>
       </div>
     </div>
